@@ -63,11 +63,11 @@
               <form>
                 <div class="form-group">
                   <label for="name-input">Full Name (Required)</label>
-                  <input type="text" class="form-control" id="name-input" placeholder="Your name...">
+                  <input type="text" class="form-control" id="name-input" placeholder="Name">
                 </div>
                 <div class="form-group">
                   <label for="photo-input">Photo Link (Required)</label>
-                  <input type="text" class="form-control" id="photo-input" placeholder="Link your photo...">
+                  <input type="text" class="form-control" id="photo-input" placeholder="Photo URL">
                 </div>
               </form>
             </div>
@@ -78,7 +78,7 @@
             <div class="col-12 question">
               <h6>QUESTION 1</h6>
               <h6>I have a vivid imagination.</h6>
-              <select class="rounded">
+              <select class="rounded choices">
                 <option value="" disabled selected>Select an Option</option>
                 <option value="1">1 (Strongly Disagree)</option>
                 <option value="2">2</option>
@@ -94,7 +94,7 @@
             <div class="col-12 question">
               <h6>QUESTION 2</h6>
               <h6>I like to solve complex problems.</h6>
-              <select class="rounded">
+              <select class="rounded choices">
                 <option value="" disabled selected>Select an Option</option>
                 <option value="1">1 (Strongly Disagree)</option>
                 <option value="2">2</option>
@@ -110,7 +110,7 @@
             <div class="col-12 question">
               <h6>QUESTION 3</h6>
               <h6>I warm up quickly to others.</h6>
-              <select class="rounded">
+              <select class="rounded choices">
                 <option value="" disabled selected>Select an Option</option>
                 <option value="1">1 (Strongly Disagree)</option>
                 <option value="2">2</option>
@@ -126,7 +126,7 @@
             <div class="col-12 question">
               <h6>QUESTION 4</h6>
               <h6>I like to get involved in intellectual debates.</h6>
-              <select class="rounded">
+              <select class="rounded choices">
                 <option value="" disabled selected>Select an Option</option>
                 <option value="1">1 (Strongly Disagree)</option>
                 <option value="2">2</option>
@@ -142,7 +142,7 @@
             <div class="col-12 question">
               <h6>QUESTION 5</h6>
               <h6>I have a strong sense of adventure.</h6>
-              <select class="rounded">
+              <select class="rounded choices">
                 <option value="" disabled selected>Select an Option</option>
                 <option value="1">1 (Strongly Disagree)</option>
                 <option value="2">2</option>
@@ -159,7 +159,7 @@
         <div class="row">
           <div class="col-12 text-center rounded-bottom ends">
             <h3> Search for friends with common traits!</h3>
-            <a class="btn btn-primary" href="home" role="button" style="margin-bottom: 10px">FIND!</a>
+            <a class="btn btn-primary find" href="#" role="button" style="margin-bottom: 10px">FIND!</a>
           </div>
         </div>
 
@@ -171,10 +171,37 @@
     <!-- END WRAP --> 
     </div>
     
-    <!-- Optional JavaScript -->
+
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <!-- JavaScript -->
+    <script type="text/javascript">
+      //When the FIND button is clicked
+      $(".find").on("click", () => {
+
+        //Reference the input values, get ready to validate them
+        var username = $("#name-input").val().trim();
+        var userphoto = $("#photo-input").val().trim();
+        var choices = [];
+
+        //Push each dropdown value to choices[]
+        $('.choices').each(function(index, obj) {
+          choices.push($(this).val());
+        });
+
+        //If input is INVALID return error
+        if (username === "" || userphoto === "" || choices.indexOf(null) !== -1) return console.log("Invalid");
+        //Else convert all choices to integers and create the newUser object
+        else {
+          var userscore = choices.map( x => { return parseInt(x); });
+          var newUser = { name: username, photo: userphoto, score: userscore }
+          console.log(newUser);
+        }
+        
+      });
+    </script>
+
   </body>
 </html>
