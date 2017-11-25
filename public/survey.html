@@ -5,7 +5,6 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
     <!-- Google Font -->
@@ -34,16 +33,15 @@
         overflow: auto;
       }
       .question { padding: 15px 0 15px 15px; }
+      .invalid-feedback { color: rgb(155, 0, 0); }
     </style>
   </head>
   
   <body>
-    
     <!-- WRAP PAGE -->
     <div class="wrap">
       <!-- START CONTAINER -->
       <div class="container">
-
 
         <!-- HEADER -->
         <div class="row">
@@ -60,14 +58,20 @@
           <!-- NAME/PHOTO FORM -->
           <section class="row">
             <div class="col-11 col-md-6 col-lg-4 question">
-              <form>
+              <form id="needs-validation" novalidate>
                 <div class="form-group">
                   <label for="name-input">Full Name (Required)</label>
-                  <input type="text" class="form-control" id="name-input" placeholder="Name">
+                  <input type="text" class="form-control" id="name-input" placeholder="Name" required>
+                  <div class="invalid-feedback">
+                    Please provide a valid name.
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="photo-input">Photo Link (Required)</label>
-                  <input type="text" class="form-control" id="photo-input" placeholder="Photo URL">
+                  <input type="text" class="form-control" id="photo-input" placeholder="Photo URL" required>
+                  <div class="invalid-feedback">
+                    Please provide a valid photo URL.
+                  </div>
                 </div>
               </form>
             </div>
@@ -163,44 +167,77 @@
           </div>
         </div>
 
+        <!-- LINKS -->
         <a href="/api/friends" target = "_blank">API Friends list</a> | <a href="https://github.com/arinarooji/friend-finder" target = "_blank">Github Repo</a>
-
 
       <!-- END CONTAINER -->
       </div>
     <!-- END WRAP --> 
     </div>
     
-
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
     <!-- JavaScript -->
     <script type="text/javascript">
-      //When the FIND button is clicked
-      $(".find").on("click", () => {
 
-        //Reference the input values, get ready to validate them
+      //Display form's input validity (name/photo), updated on every input received (purely aesthetic)
+      DisplayInputValidity($('#name-input')); DisplayInputValidity($('#photo-input'));
+      
+      //.find button click event
+      $(".find").on("click", () => {
+        event.preventDefault();
+        var validated = false;
+
+        //Reference the submitted input values
         var username = $("#name-input").val().trim();
         var userphoto = $("#photo-input").val().trim();
-        var choices = [];
-
         //Push each dropdown value to choices[]
-        $('.choices').each(function(index, obj) {
-          choices.push($(this).val());
-        });
+        var choices = [];
+        $('.choices').each(function(index, obj) { choices.push($(this).val()); });
 
-        //If input is INVALID return error
-        if (username === "" || userphoto === "" || choices.indexOf(null) !== -1) return console.log("Invalid");
-        //Else convert all choices to integers and create the newUser object
+        //Validation
+        //If trimmed name/photo values are empty, return this alert. The user must complete those fields.
+        if (username === "" || userphoto === "") return alert("Please complete Full Name and Photo URL fields.");
+        //Else iterate through choices[], which must not contain anything other than integer values from 1-5.
         else {
-          var userscore = choices.map( x => { return parseInt(x); });
-          var newUser = { name: username, photo: userphoto, score: userscore }
-          console.log(newUser);
+          choices.forEach(choice => {
+            //If the iterated choice is anything other than an integer from 1-5, throw the alert and stop the program from proceeding.
+            if (isNaN(parseInt(choice)) || parseInt(choice) < 1 || parseInt(choice) > 5) throw alert("Please complete the questionnaire");
+            else validated = true; //Else, the choice is now validated
+          })
         }
-        
-      });
+
+        //If the user's name/photo and choices are validated, create the newUser object with this data
+        if (validated) {
+          var newUser = { name: username, photo: userphoto, score: choices }
+          //Post validated user to this route
+          $.post("/api/friends", newUser)
+          //When the post is done...
+          .done( data => {
+            //Log the data
+            console.log(data);
+            
+            //Reset all fields
+            $("#name-input").val("");
+            $("#photo-input").val("");
+            $("select").each(function() { this.selectedIndex = 0 });
+            
+          });
+        }
+
+      }); //End of .find button click event
+
+      //DisplayInputValidity: (purely aesthetic)
+      //Checks trimmed value of HTML element. If empty, adds invalid class and removes valid. Else, add valid class and remove invalid.
+      //The is-valid/ is-invalid classes merely effect the input fields and does not actually prevent info submission
+      function DisplayInputValidity(element) {
+        $(element).on("input", () => {
+          if ($(element).val().trim() === "") { $(element).addClass("is-invalid"); $(element).removeClass("is-valid"); }
+          else { $(element).addClass("is-valid"); $(element).removeClass("is-invalid"); }
+        });
+      }
     </script>
 
   </body>
