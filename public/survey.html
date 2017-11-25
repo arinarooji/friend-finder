@@ -14,6 +14,7 @@
       body { background-color:rgb(25, 25, 175); }
       .row { margin: 0 auto; }
       a, a:hover { text-decoration: none !important; color : inherit;}
+      select:hover {cursor: pointer;}
       .ends {
         background-color: rgb(90, 0, 205);
         color:rgb(155, 155, 255);
@@ -29,6 +30,8 @@
         border-left: 4px solid rgb(0, 32, 120);
         border-right: 4px solid rgb(0, 32, 120);
         color:rgb(255, 255, 255);
+        max-height: 550px;
+        overflow: auto;
       }
       .question { padding: 15px 0 15px 15px; }
     </style>
@@ -53,6 +56,22 @@
 
         <!-- BEGIN QUESTIONS-->
         <article class="questions">
+
+          <section class="row">
+            <div class="col-11 col-md-6 col-lg-4 question">
+              <form>
+                <div class="form-group">
+                  <label for="name-input">Full Name (Required)</label>
+                  <input type="text" class="form-control" id="name-input" placeholder="Your name...">
+                </div>
+                <div class="form-group">
+                  <label for="photo-input">Photo Link (Required)</label>
+                  <input type="text" class="form-control" id="photo-input" placeholder="Link your photo...">
+                </div>
+              </form>
+            </div>
+          </section>
+          
 
           <!-- QUESTION 1 -->
           <section class="row">
