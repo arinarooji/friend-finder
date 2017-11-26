@@ -13,10 +13,9 @@
       body { background-color:rgb(25, 25, 175); }
       .row { margin: 0 auto; }
       a, a:hover   { text-decoration: none !important; color : inherit; }
-      select:hover { cursor: pointer; }
+      select:hover, .btn:hover { cursor: pointer; }
       .question         { padding: 15px 0 15px 15px; }
       .invalid-feedback { color: rgb(155, 0, 0); }
-
       .ends {
         background-color: rgb(90, 0, 205);
         color:rgb(155, 155, 255);
@@ -35,7 +34,6 @@
         max-height: 550px;
         overflow: auto;
       }
-      
       /* Custom scroll bar */
       .scroll::-webkit-scrollbar-track {
         -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
@@ -52,6 +50,20 @@
         -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
         box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
         background-color: rgb(90, 0, 205);
+      }
+      /* Modal */
+      .modal-content { border: 2px solid rgb(0, 32, 120); }
+      .modal-body { 
+        background-color: rgb(7,146,225);
+        color:rgb(255, 255, 255);
+        border-left: 2px solid rgb(0, 32, 120);
+        border-right: 2px solid rgb(0, 32, 120);
+      }
+      .modal-header, .modal-footer {
+        font-family: 'Russo One', sans-serif;
+        border: 2px solid rgb(0, 32, 120);
+        background-color: rgb(90, 0, 205);
+        color:rgb(155, 155, 255);
       }
     </style>
   </head>
@@ -77,6 +89,7 @@
           <!-- NAME/PHOTO FORM -->
           <section class="row">
             <div class="col-11 col-md-6 col-lg-4 question">
+              <h4>About Me</h4>
               <form id="needs-validation" novalidate>
                 <div class="form-group">
                   <label for="name-input">Full Name (Required)</label>
@@ -86,10 +99,18 @@
                   </div>
                 </div>
                 <div class="form-group">
+                  <label for="name-input">Short Bio (Required)</label>
+                  <input type="text" class="form-control" id="bio-input" placeholder="About me" required>
+                  <div class="invalid-feedback">
+                    Please tell us a little bit about yourself.
+                  </div>
+                </div>
+                <div class="form-group">
                   <label for="photo-input">Photo Link (Required)</label>
                   <input type="text" class="form-control" id="photo-input" placeholder="Photo URL" required>
                   <div class="invalid-feedback">
-                    Please provide a valid photo URL.
+                    Please provide a valid photo URL. <br>
+                    (.jpeg .jpg .gif .png)
                   </div>
                 </div>
               </form>
@@ -186,6 +207,29 @@
           </div>
         </div>
 
+        <!-- MODAL -->
+        <div class="modal fade" id="friendModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Top Friend</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <img class="friend-img img-fluid rounded" src="#">
+                <h5   class="friend-name"></h5>
+                <h5   class="friend-rank"></h5>
+                <h5   class="friend-bio"></h5>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- LINKS -->
         <a href="/api/friends" target = "_blank">API Friends list</a> | <a href="https://github.com/arinarooji/friend-finder" target = "_blank">Github Repo</a>
 
@@ -201,8 +245,11 @@
     <!-- JavaScript -->
     <script type="text/javascript">
 
-      //Display form's input validity (name/photo), updated on every input received (purely aesthetic)
-      DisplayInputValidity($('#name-input')); DisplayInputValidity($('#photo-input'));
+      //Display form's input validity (name/bio/photo), updated on every input received (purely aesthetic)
+      //Takes an input element and isPhoto (true/false)
+      DisplayInputValidity($('#name-input'), false);
+      DisplayInputValidity($('#bio-input'), false);
+      DisplayInputValidity($('#photo-input'), true);
       
       //.find button click event
       $(".find").on("click", () => {
@@ -211,15 +258,21 @@
 
         //Reference the submitted input values
         var username = $("#name-input").val().trim();
+        var userbio = $("#bio-input").val().trim();
         var userphoto = $("#photo-input").val().trim();
         //Push each dropdown value to choices[]
         var choices = [];
         $('.choices').each(function(index, obj) { choices.push($(this).val()); });
 
-        //Validation
-        //If trimmed name/photo values are empty, return this alert. The user must complete those fields.
-        if (username === "" || userphoto === "") return alert("Please complete Full Name and Photo URL fields.");
-        //Else iterate through choices[], which must not contain anything other than integer values from 1-5.
+        //Validation stage 1: About Me section
+        //Interrogate username, userbio, and userphoto for empty values.
+        //Also interrogate userphoto for absent file extensions (does not check if it is an actual image)
+        if (username === "" || userbio === "" || userphoto === "" || !userphoto.match(/\.(jpeg|jpg|gif|png)$/))
+        return alert("Please complete the About Me section");
+
+        //Validation stage 2: Questions section
+        //At this point, About Me has been validated. If incomplete it would return the alert. Else, check choices[]
+        //Iterate through choices[], interrogate each choice for anything other than integer values from 1-5.
         else {
           choices.forEach(choice => {
             //If the iterated choice is anything other than an integer from 1-5, throw the alert and stop the program from proceeding.
@@ -228,33 +281,50 @@
           })
         }
 
-        //If the user's name/photo and choices are validated, create the newUser object with this data
+        //Validation stage 3: Object creation & POST
+        //If validated makes it out of the forEach loop as true, the user's info submission is validated
         if (validated) {
-          var newUser = { name: username, photo: userphoto, score: choices }
+          //Create the newUser object
+          var newUser = { name: username, bio: userbio, photo: userphoto, scores: choices }
+
           //Post validated user to this route
           $.post("/api/friends", newUser)
           //When the post is done...
           .done( data => {
-            //Log the data
-            console.log(data);
-            
-            //Reset all fields
-            $("#name-input").val("");
-            $("#photo-input").val("");
+
+            //Reset About Me and all dropdowns
+            $("#name-input, #bio-input, #photo-input").val("");
             $("select").each(function() { this.selectedIndex = 0 });
+
+            //Update modal with top friend data (if rank === 0, it is an exact match. Zero differences.)
+            $(".friend-img").attr("src", data.friend.photo);
+            $(".friend-name").html(data.friend.name);
+            $(".friend-bio").html(data.friend.bio);
+            (data.rank === 0)? $(".friend-rank").html("Rank: " + data.rank + " (Exact match!)") : $(".friend-rank").html("Rank: " + data.rank)
             
+            $('#friendModal').modal('show'); //Display modal
           });
+
         }
 
       }); //End of .find button click event
 
       //DisplayInputValidity: (purely aesthetic)
-      //Checks trimmed value of HTML element. If empty, adds invalid class and removes valid. Else, add valid class and remove invalid.
-      //The is-valid/ is-invalid classes merely effect the input fields and does not actually prevent info submission
-      function DisplayInputValidity(element) {
+      //Takes an HTML input element and true/false value for isPhoto (checks for image file extensions if true)
+      //If empty or missing extentions, adds is-invalid class and removes is-valid. Else, add is-valid class and remove is-invalid.
+      //The is-valid/ is-invalid classes merely affect the input fields and do not actually prevent info submission
+      function DisplayInputValidity(element, isPhoto) {
         $(element).on("input", () => {
-          if ($(element).val().trim() === "") { $(element).addClass("is-invalid"); $(element).removeClass("is-valid"); }
+          var inputField = $(element).val().trim();
+
+          if ( inputField === "") { 
+            $(element).addClass("is-invalid"); $(element).removeClass("is-valid");
+          }
+          else if (isPhoto && !inputField.match(/\.(jpeg|jpg|gif|png)$/)) { 
+            $(element).addClass("is-invalid"); $(element).removeClass("is-valid");
+          }
           else { $(element).addClass("is-valid"); $(element).removeClass("is-invalid"); }
+
         });
       }
     </script>
