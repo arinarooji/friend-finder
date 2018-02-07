@@ -8,7 +8,6 @@
 - Tell us a bit about yourself! Type in your name, a short bio, paste in your photo url.
 - You're ready for the survey questions! Answer a few personality questions as accurately as possible.
 - When finished with the survey, click the **Find** button to instantly be matched with someone who answered similarly to you!
-<br>
 
 #### Future Plans
 - Further code optimization
