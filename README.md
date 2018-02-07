@@ -1,5 +1,5 @@
 # Friend Finder
-![digitization-2091861_1920](https://user-images.githubusercontent.com/30301389/35898388-6d0fdd62-0b94-11e8-91cf-0a79b738e3df.jpg)
+![digitization-2091861_1920](https://user-images.githubusercontent.com/30301389/35899042-2a8b369a-0b98-11e8-88b9-1eff21e805a5.jpg)
 ### Take a quick survey and get matched with people you share qualities with!
 
 #### Guide
